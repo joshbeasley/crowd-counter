@@ -5,7 +5,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from network import Conv2d, FC
+from src import network 
 
 
 class CMTL(nn.Module):
@@ -17,38 +17,38 @@ class CMTL(nn.Module):
         super(CMTL, self).__init__()
         
         self.num_classes = num_classes        
-        self.base_layer = nn.Sequential(Conv2d( 1, 16, 9, same_padding=True, NL='prelu', bn=bn),                                     
-                                        Conv2d(16, 32, 7, same_padding=True, NL='prelu', bn=bn))
+        self.base_layer = nn.Sequential(network.Conv2d( 1, 16, 9, same_padding=True, NL='prelu', bn=bn),                                     
+                                        network.Conv2d(16, 32, 7, same_padding=True, NL='prelu', bn=bn))
         
-        self.hl_prior_1 = nn.Sequential(Conv2d( 32, 16, 9, same_padding=True, NL='prelu', bn=bn),
+        self.hl_prior_1 = nn.Sequential(network.Conv2d( 32, 16, 9, same_padding=True, NL='prelu', bn=bn),
                                      nn.MaxPool2d(2),
-                                     Conv2d(16, 32, 7, same_padding=True, NL='prelu', bn=bn),
+                                     network.Conv2d(16, 32, 7, same_padding=True, NL='prelu', bn=bn),
                                      nn.MaxPool2d(2),
-                                     Conv2d(32, 16, 7, same_padding=True, NL='prelu', bn=bn),
-                                     Conv2d(16, 8,  7, same_padding=True, NL='prelu', bn=bn))
+                                     network.Conv2d(32, 16, 7, same_padding=True, NL='prelu', bn=bn),
+                                     network.Conv2d(16, 8,  7, same_padding=True, NL='prelu', bn=bn))
                 
         self.hl_prior_2 = nn.Sequential(nn.AdaptiveMaxPool2d((32,32)),
-                                        Conv2d( 8, 4, 1, same_padding=True, NL='prelu', bn=bn))
+                                        network.Conv2d( 8, 4, 1, same_padding=True, NL='prelu', bn=bn))
         
-        self.hl_prior_fc1 = FC(4*1024,512, NL='prelu')
-        self.hl_prior_fc2 = FC(512,256,    NL='prelu')
-        self.hl_prior_fc3 = FC(256, self.num_classes,     NL='prelu')
+        self.hl_prior_fc1 = network.FC(4*1024,512, NL='prelu')
+        self.hl_prior_fc2 = network.FC(512,256,    NL='prelu')
+        self.hl_prior_fc3 = network.FC(256, self.num_classes,     NL='prelu')
         
         
-        self.de_stage_1 = nn.Sequential(Conv2d( 32, 20, 7, same_padding=True, NL='prelu', bn=bn),
+        self.de_stage_1 = nn.Sequential(network.Conv2d( 32, 20, 7, same_padding=True, NL='prelu', bn=bn),
                                      nn.MaxPool2d(2),
-                                     Conv2d(20, 40, 5, same_padding=True, NL='prelu', bn=bn),
+                                     network.Conv2d(20, 40, 5, same_padding=True, NL='prelu', bn=bn),
                                      nn.MaxPool2d(2),
-                                     Conv2d(40, 20, 5, same_padding=True, NL='prelu', bn=bn),
-                                     Conv2d(20, 10, 5, same_padding=True, NL='prelu', bn=bn))
+                                     network.Conv2d(40, 20, 5, same_padding=True, NL='prelu', bn=bn),
+                                     network.Conv2d(20, 10, 5, same_padding=True, NL='prelu', bn=bn))
         
-        self.de_stage_2 = nn.Sequential(Conv2d( 18, 24, 3, same_padding=True, NL='prelu', bn=bn),
-                                        Conv2d( 24, 32, 3, same_padding=True, NL='prelu', bn=bn),                                        
+        self.de_stage_2 = nn.Sequential(network.Conv2d( 18, 24, 3, same_padding=True, NL='prelu', bn=bn),
+                                        network.Conv2d( 24, 32, 3, same_padding=True, NL='prelu', bn=bn),                                        
                                         nn.ConvTranspose2d(32,16,4,stride=2,padding=1,output_padding=0,bias=True),
                                         nn.PReLU(),
                                         nn.ConvTranspose2d(16,8,4,stride=2,padding=1,output_padding=0,bias=True),
                                         nn.PReLU(),
-                                        Conv2d(8, 1, 1, same_padding=True, NL='relu', bn=bn))
+                                        network.Conv2d(8, 1, 1, same_padding=True, NL='relu', bn=bn))
         
     def forward(self, im_data):
         x_base = self.base_layer(im_data)

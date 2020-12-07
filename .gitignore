@@ -1,7 +1,4 @@
 *.pyc
-output
-data
-final_models
-saved_models
 *_epochs.py
 *~
+__pycache__

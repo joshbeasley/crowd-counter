@@ -34,31 +34,36 @@ net = CrowdCounter()
       
 trained_model = os.path.join(model_path)
 network.load_net(trained_model, net)
-net.cuda()
-net.eval()
-mae = 0.0
-mse = 0.0
-for blob in data_loader:                        
-    im_data = blob['data']
-    gt_data = blob['gt_density']
-    density_map = net(im_data, gt_data)
-    density_map = density_map.data.cpu().numpy()
-    gt_count = np.sum(gt_data)
-    et_count = np.sum(density_map)
-    mae += abs(gt_count-et_count)
-    mse += ((gt_count-et_count)*(gt_count-et_count))
-    if vis:
-        utils.display_results(im_data, gt_data, density_map)
-    if save_output:
-        utils.save_density_map(density_map, output_dir, 'output_' + blob['fname'].split('.')[0] + '.png')
+f = open(file_results, 'w') 
+# net.cuda()
+with torch.no_grad():
+    net.eval()
+    mae = 0.0
+    mse = 0.0
+    i = 0
+    for blob in data_loader:                
+        im_data = blob['data']
+        gt_data = blob['gt_density']
+        density_map = net(im_data, gt_data)
+        density_map = density_map.data.cpu().numpy()
+        gt_count = np.sum(gt_data)
+        et_count = np.sum(density_map)
+        print("{}: {}, {}".format(i, gt_count, et_count))
+        f.write("{}: {}, {}\n".format(i, gt_count, et_count))
+        mae += abs(gt_count-et_count)
+        mse += ((gt_count-et_count)*(gt_count-et_count))
+        if vis:
+            utils.display_results(im_data, gt_data, density_map)
+        if save_output:
+            utils.save_density_map(density_map, output_dir, 'output_' + blob['fname'].split('.')[0] + '.png')
+        i += 1
         
         
         
 mae = mae/data_loader.get_num_samples()
 mse = np.sqrt(mse/data_loader.get_num_samples())
-print 'MAE: %0.2f, MSE: %0.2f' % (mae,mse)
+print('MAE: {}, MSE: {}'.format(mae,mse))
 
-f = open(file_results, 'w') 
-f.write('MAE: %0.2f, MSE: %0.2f' % (mae,mse))
+f.write('MAE: {}, MSE: {}'.format(mae,mse))
 f.close()
     
